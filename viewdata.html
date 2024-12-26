@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Penduduk</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #4a5bb7;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        .search-container {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .search-container input {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 70%;
+        }
+
+        .search-container button {
+            margin-left: 5px;
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #6c7ae0;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .search-container button:hover {
+            background-color: #4a5bb7;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #6c7ae0;
+            color: white;
+            cursor: pointer;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        .button-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #6c7ae0;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .buttonedit {
+            padding: 5px 10px;
+            font-size: small;
+            background-color: #6c7ae0;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-bottom: 5px;
+        }
+
+        .buttonhapus {
+            padding: 5px 10px;
+            font-size: small;
+            background-color: #6c7ae0;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-bottom: 5px;
+        }
+
+        button:hover {
+            background-color: #4a5bb7;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Data Penduduk</h1>
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Cari berdasarkan nama atau NIK">
+            <button onclick="searchData()">Cari</button>
+        </div>
+        <table id="dataTable">
+            <thead>
+                <tr>
+                    <th onclick="sortTable(0)">No</th>
+                    <th onclick="sortTable(1)">Nama</th>
+                    <th onclick="sortTable(2)">NIK</th>
+                    <th>Desa</th>
+                    <th>RT</th>
+                    <th>RW</th>
+                    <th>Telepon</th>
+                    <th>Status</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Data akan dimasukkan di sini -->
+            </tbody>
+        </table>
+
+        <div class="button-container">
+            <button onclick="window.location.href='index.html';">Kembali ke Form Input</button>
+            <button onclick="downloadPDF()">Unduh PDF</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const tableBody = document.querySelector('#dataTable tbody');
+            const data = JSON.parse(localStorage.getItem('pendudukData')) || [];
+
+            if (data.length === 0) {
+                const row = tableBody.insertRow();
+                const cell = row.insertCell(0);
+                cell.colSpan = 9;
+                cell.textContent = 'Belum ada data.';
+                cell.style.textAlign = 'center';
+            } else {
+                renderTable(data);
+            }
+        });
+
+        function renderTable(data) {
+            const tableBody = document.querySelector('#dataTable tbody');
+            tableBody.innerHTML = '';
+
+            data.forEach((item, index) => {
+                const row = tableBody.insertRow();
+
+                const cellNo = row.insertCell(0);
+                cellNo.textContent = index + 1;
+
+                const cellNama = row.insertCell(1);
+                cellNama.textContent = item.nama;
+
+                const cellNik = row.insertCell(2);
+                cellNik.textContent = item.nik;
+
+                const cellDesa = row.insertCell(3);
+                cellDesa.textContent = item.desa;
+
+                const cellRt = row.insertCell(4);
+                cellRt.textContent = item.rt;
+
+                const cellRw = row.insertCell(5);
+                cellRw.textContent = item.rw;
+
+                const cellTelepon = row.insertCell(6);
+                cellTelepon.textContent = item.telpon;
+
+                const cellStatus = row.insertCell(7);
+                cellStatus.textContent = item.status;
+
+                const cellAksi = row.insertCell(8);
+                cellAksi.innerHTML = `
+                    <button class="buttonedit" onclick="editData(${index})">Edit</button>
+                    <button class="buttonhapus" onclick="deleteData(${index})">Hapus</button>
+                `;
+            });
+        }
+
+        function searchData() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const data = JSON.parse(localStorage.getItem('pendudukData')) || [];
+
+            const filteredData = data.filter(item => 
+                item.nama.toLowerCase().includes(query) ||
+                item.nik.toLowerCase().includes(query)
+            );
+
+            renderTable(filteredData);
+        }
+
+        function sortTable(columnIndex) {
+            const table = document.getElementById('dataTable');
+            const rows = Array.from(table.tBodies[0].rows);
+            const isAscending = table.getAttribute('data-sort') === 'asc';
+
+            rows.sort((a, b) => {
+                const cellA = a.cells[columnIndex].textContent.trim().toLowerCase();
+                const cellB = b.cells[columnIndex].textContent.trim().toLowerCase();
+
+                if (!isNaN(cellA) && !isNaN(cellB)) {
+                    return isAscending ? cellA - cellB : cellB - cellA;
+                }
+
+                return isAscending 
+                    ? cellA.localeCompare(cellB) 
+                    : cellB.localeCompare(cellA);
+            });
+
+            rows.forEach(row => table.tBodies[0].appendChild(row));
+
+            table.setAttribute('data-sort', isAscending ? 'desc' : 'asc');
+        }
+
+        function editData(index) {
+            const data = JSON.parse(localStorage.getItem('pendudukData')) || [];
+            const item = data[index];
+
+            const newNama = prompt('Masukkan nama baru:', item.nama);
+            const newNik = prompt('Masukkan NIK baru:', item.nik);
+            const newDesa = prompt('Masukkan desa baru:', item.desa);
+            const newRt = prompt('Masukkan RT baru:', item.rt);
+            const newRw = prompt('Masukkan RW baru:', item.rw);
+            const newTelpon = prompt('Masukkan telepon baru:', item.telpon);
+            const newStatus = prompt('Masukkan status baru:', item.status);
+
+            if (newNama && newNik && newDesa && newRt && newRw && newTelpon && newStatus) {
+                data[index] = { nama: newNama, nik: newNik, desa: newDesa, rt: newRt, rw: newRw, telpon: newTelpon, status: newStatus };
+                localStorage.setItem('pendudukData', JSON.stringify(data));
+                renderTable(data);
+            }
+        }
+
+        function deleteData(index) {
+            const data = JSON.parse(localStorage.getItem('pendudukData')) || [];
+
+            if (confirm('Apakah Anda yakin ingin menghapus data ini?')) {
+                data.splice(index, 1);
+                localStorage.setItem('pendudukData', JSON.stringify(data));
+                renderTable(data);
+            }
+        }
+
+        async function downloadPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            const table = document.getElementById('dataTable');
+            const rows = Array.from(table.rows);
+
+            let y = 10;
+
+            rows.forEach((row, index) => {
+                const cols = Array.from(row.cells).map(cell => cell.textContent.trim());
+
+                doc.text(cols.join(' | '), 10, y);
+                y += 10;
+
+                if (y > 280) {
+                    doc.addPage();
+                    y = 10;
+                }
+            });
+
+            doc.save('data_penduduk.pdf');
+        }
+    </script>
+</body>
+</html>
